@@ -7,7 +7,6 @@ import { Overview } from "@/components/custom/overview";
 import { Header } from "@/components/custom/header";
 import { v4 as uuidv4 } from 'uuid';
 import { useParams } from "react-router-dom";
-import { urlWithParams } from "@/lib/utils";
 import { EventSource } from "extended-eventsource"
 
 const DEFAULT_AGENT_ID = import.meta.env.VITE_DEFAULT_AGENT_ID;
@@ -31,23 +30,7 @@ export function Chat() {
   const [question, setQuestion] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
-  useEffect(() => {
-    const es = new EventSource(URL + `/stream?channel=${convId}`);
-    es.onopen = () => console.log(">>> Connection opened!");
-    es.onerror = (e) => console.log("ERROR!", e);
-    es.onmessage = (event: MessageEvent) => {
-      const data = JSON.parse(event.data);
-      handleResponse(data);
-    };
-    return () => {
-      es.close();
-    };
-  }, []);
-
-
   function handleResponse(data: any) {
-    console.log("received");
-    console.log(data);
     setMessages(prev => {
       const lastMessage = prev[prev.length - 1];
       if (lastMessage?.role === "assistant") {
@@ -68,6 +51,21 @@ export function Chat() {
     });
   }
 
+  useEffect(() => {
+    const es = new EventSource(URL + `/stream?channel=${convId}`);
+    es.onopen = () => console.log(">>> Connection opened!");
+    es.onerror = (e) => console.log("ERROR!", e);
+    es.onmessage = (event: MessageEvent) => {
+      const data = JSON.parse(event.data);
+      handleResponse(data);
+    };
+    return () => {
+      es.close();
+    };
+  }, []);
+
+
+
   async function handleSubmit(text?: string) {
     if (isLoading) return;
     const messageText = text || question;
@@ -78,16 +76,28 @@ export function Chat() {
       id: uuidv4()
     }]);
     setQuestion("");
-    fetch(urlWithParams(URL + "/ask", {
-      message: messageText,
-      conv_id: convId,
-      agent_id: final_agent_id,
-    })).then((res) => {
-      console.log(res);
-    }).catch((err) => {
-      console.log(err);
-    });
-    setIsLoading(false);
+
+    fetch(URL + "/chat", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        message: messageText,
+        conv_id: convId,
+        agent_id: final_agent_id,
+      }),
+    })
+      .then((res) => res.text())
+      .then((data) => {
+        console.log(data);
+      })
+      .catch((err) => {
+        console.error("Error:", err);
+      }).finally(() => {
+        setIsLoading(false);
+      });
+
   }
 
   return (
