@@ -13,8 +13,16 @@ const API_URL = import.meta.env.VITE_API_URL;
 
 const URL = process.env.NODE_ENV === 'production' ? API_URL : 'http://localhost:5000';
 
+function getAgentIdByHost(host: string | undefined) {
+  switch (host) {
+    default:
+      return DEFAULT_AGENT_ID
+  }
+}
+
 export function Chat() {
-  const { agent_id = DEFAULT_AGENT_ID } = useParams();
+  const { agent_id, host } = useParams();
+  const final_agent_id = agent_id || getAgentIdByHost(host);
   const [convId, setConvId] = useState<string>("");
   const [messagesContainerRef, messagesEndRef] = useScrollToBottom<HTMLDivElement>();
   const [messages, setMessages] = useState<message[]>([]);
@@ -69,7 +77,7 @@ export function Chat() {
     socketRef.current.emit("json", {
       message: messageText,
       conv_id: convId,
-      agent_id: agent_id
+      agent_id: final_agent_id
     });
     setQuestion("");
 
