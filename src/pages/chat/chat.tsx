@@ -1,13 +1,14 @@
 import { ChatInput } from "@/components/custom/chatinput";
 import { PreviewMessage, ThinkingMessage } from "../../components/custom/message";
 import { useScrollToBottom } from '@/components/custom/use-scroll-to-bottom';
-import { useState, useRef, useEffect } from "react";
+import { useState } from "react";
 import { message } from "../../interfaces/interfaces";
 import { Overview } from "@/components/custom/overview";
 import { Header } from "@/components/custom/header";
 import { v4 as uuidv4 } from 'uuid';
-import { io, Socket } from "socket.io-client";
 import { useParams } from "react-router-dom";
+import { urlWithParams } from "@/lib/utils";
+
 const DEFAULT_AGENT_ID = import.meta.env.VITE_DEFAULT_AGENT_ID;
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -23,108 +24,65 @@ function getAgentIdByHost(host: string | undefined) {
 export function Chat() {
   const { agent_id, host } = useParams();
   const final_agent_id = agent_id || getAgentIdByHost(host);
-  const [convId, setConvId] = useState<string>("");
+  const [convId] = useState<string>(crypto.randomUUID());
   const [messagesContainerRef, messagesEndRef] = useScrollToBottom<HTMLDivElement>();
   const [messages, setMessages] = useState<message[]>([]);
   const [question, setQuestion] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [isConnected, setIsConnected] = useState(false);
 
-  const socketRef = useRef<Socket | null>(null);
-  const messageHandlerRef = useRef<((data: string) => void) | null>(null);
-
-  useEffect(() => {
-    socketRef.current = io(URL, {
-      transports: ["websocket"],
-      autoConnect: true,
-    });
-    setConvId(crypto.randomUUID());
-    const socket = socketRef.current;
-
-    // Connection status handlers
-    socket.on('connect', () => setIsConnected(true));
-    socket.on('disconnect', () => setIsConnected(false));
-
-    // Cleanup on unmount
-    return () => {
-      socket.off('connect');
-      socket.off('disconnect');
-      socket.disconnect();
+  const listenResponse = (message: string) => {
+    const es = new EventSource(urlWithParams(URL + "/ask", {
+      message: message,
+      conv_id: convId,
+      agent_id: final_agent_id
+    }));
+    es.onopen = () => console.log(">>> Connection opened!");
+    es.onerror = (e) => console.log("ERROR!", e);
+    es.onmessage = (event: MessageEvent) => {
+      const data = JSON.parse(event.data);
+      console.log("received");
+      console.log(data);
+      setMessages(prev => {
+        const lastMessage = prev[prev.length - 1];
+        if (lastMessage?.role === "assistant") {
+          return [
+            ...prev.slice(0, -1),
+            { ...lastMessage, content: lastMessage.content + data.response }
+          ];
+        } else {
+          return [
+            ...prev,
+            {
+              content: data.response,
+              role: "assistant",
+              id: uuidv4()
+            }
+          ];
+        }
+      });
     };
-  }, []);
-
-  const cleanupMessageHandler = () => {
-    if (messageHandlerRef.current && socketRef.current) {
-      socketRef.current.off("json", messageHandlerRef.current);
-      messageHandlerRef.current = null;
-    }
+    return () => {
+      setIsLoading(false);
+      es.close();
+    };
   };
 
   async function handleSubmit(text?: string) {
-    if (!socketRef.current || isLoading) return;
-
+    if (isLoading) return;
     const messageText = text || question;
     setIsLoading(true);
-    cleanupMessageHandler();
-
-    const userMessageId = uuidv4();
     setMessages(prev => [...prev, {
       content: messageText,
       role: "user",
-      id: userMessageId
+      id: uuidv4()
     }]);
-
-    socketRef.current.emit("json", {
-      message: messageText,
-      conv_id: convId,
-      agent_id: final_agent_id
-    });
     setQuestion("");
-
-    try {
-      const messageHandler = (data: any) => {
-        console.log("received");
-        console.log(data);
-        if (data instanceof String && data.includes("[END]")) {
-          setIsLoading(false);
-          cleanupMessageHandler();
-          return;
-        }
-
-        setMessages(prev => {
-          const lastMessage = prev[prev.length - 1];
-
-          if (lastMessage?.role === "assistant") {
-            return [
-              ...prev.slice(0, -1),
-              { ...lastMessage, content: lastMessage.content + data.response }
-            ];
-          } else {
-            const assistantMessageId = uuidv4();
-            return [
-              ...prev,
-              {
-                content: data.response,
-                role: "assistant",
-                id: assistantMessageId
-              }
-            ];
-          }
-        });
-      };
-
-      messageHandlerRef.current = messageHandler;
-      socketRef.current.on("json", messageHandler);
-    } catch (error) {
-      console.error("WebSocket error:", error);
-      setIsLoading(false);
-      cleanupMessageHandler();
-    }
+    listenResponse(messageText);
   }
 
   return (
     <div className="flex flex-col min-w-0 h-dvh bg-background">
-      <Header isConnected={isConnected} />
+      <Header />
       <div
         className="flex flex-col min-w-0 gap-6 flex-1 overflow-y-scroll pt-4"
         ref={messagesContainerRef}

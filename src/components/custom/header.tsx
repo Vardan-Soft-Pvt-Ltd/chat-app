@@ -1,6 +1,6 @@
 import { ThemeToggle } from "./theme-toggle";
 
-export const Header = ({ isConnected }: { isConnected: boolean }) => {
+export const Header = () => {
   return (
     <>
       <header className="flex items-center justify-between px-2 sm:px-4 py-2 bg-background text-black dark:text-white w-full">
@@ -8,7 +8,7 @@ export const Header = ({ isConnected }: { isConnected: boolean }) => {
           <ThemeToggle />
         </div>
         <div>
-          {isConnected && <span className="blink_me"></span>}
+          {/* {<span className="blink_me"></span>} */}
         </div>
       </header>
     </>);
