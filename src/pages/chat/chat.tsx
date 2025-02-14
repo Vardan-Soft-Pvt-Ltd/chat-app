@@ -8,7 +8,7 @@ import { Header } from "@/components/custom/header";
 import { v4 as uuidv4 } from 'uuid';
 import { io, Socket } from "socket.io-client";
 import { useParams } from "react-router-dom";
-const DEFAULT_AGENT_ID = import.meta.env.VITE_AGENT_ID;
+const DEFAULT_AGENT_ID = import.meta.env.VITE_DEFAULT_AGENT_ID;
 const API_URL = import.meta.env.VITE_API_URL;
 
 const URL = process.env.NODE_ENV === 'production' ? API_URL : 'http://localhost:5000';
