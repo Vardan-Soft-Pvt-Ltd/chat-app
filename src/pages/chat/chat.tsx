@@ -1,7 +1,7 @@
 import { ChatInput } from "@/components/custom/chatinput";
 import { PreviewMessage, ThinkingMessage } from "../../components/custom/message";
 import { useScrollToBottom } from '@/components/custom/use-scroll-to-bottom';
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { message } from "../../interfaces/interfaces";
 import { Overview } from "@/components/custom/overview";
 import { Header } from "@/components/custom/header";
@@ -29,8 +29,22 @@ export function Chat() {
   const [messages, setMessages] = useState<message[]>([]);
   const [question, setQuestion] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [es, setEs] = useState<EventSource | null>();
-  function handleAiResponse(data: any) {
+
+  useEffect(() => {
+    const es = new EventSource(URL + "/stream");
+    es.onopen = () => console.log(">>> Connection opened!");
+    es.onerror = (e) => console.log("ERROR!", e);
+    es.onmessage = (event: MessageEvent) => {
+      const data = JSON.parse(event.data);
+      handleResponse(data);
+    };
+    return () => {
+      es.close();
+    };
+  }, []);
+
+
+  function handleResponse(data: any) {
     console.log("received");
     console.log(data);
     setMessages(prev => {
@@ -53,27 +67,6 @@ export function Chat() {
     });
   }
 
-  const listenResponse = (message: string) => {
-    fetch(urlWithParams(URL + "/ask", {
-      message: message,
-      conv_id: convId,
-      agent_id: final_agent_id,
-    })).then((res) => {
-      console.log(res);
-    }).catch((err) => {
-      console.log(err);
-    });
-    es?.close();
-    setEs(new EventSource(URL + "/stream"));
-    es!.onopen = () => console.log(">>> Connection opened!");
-    es!.onerror = (e) => console.log("ERROR!", e);
-    es!.onmessage = (event: MessageEvent) => {
-      const data = JSON.parse(event.data!);
-      handleAiResponse(data);
-    };
-    setIsLoading(false);
-  };
-
   async function handleSubmit(text?: string) {
     if (isLoading) return;
     const messageText = text || question;
@@ -84,7 +77,16 @@ export function Chat() {
       id: uuidv4()
     }]);
     setQuestion("");
-    listenResponse(messageText);
+    fetch(urlWithParams(URL + "/ask", {
+      message: messageText,
+      conv_id: convId,
+      agent_id: final_agent_id,
+    })).then((res) => {
+      console.log(res);
+    }).catch((err) => {
+      console.log(err);
+    });
+    setIsLoading(false);
   }
 
   return (
