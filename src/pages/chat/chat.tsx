@@ -77,16 +77,14 @@ export function Chat() {
     }]);
     setQuestion("");
 
-    fetch(URL + "/chat", {
-      mode: 'no-cors',
+    fetch(URL + "/chat/" + final_agent_id, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
         message: messageText,
-        conv_id: convId,
-        agent_id: final_agent_id,
+        conv_id: convId
       })
     })
       .then((res) => res.text())
