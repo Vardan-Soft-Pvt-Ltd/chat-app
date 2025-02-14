@@ -1,13 +1,13 @@
 import { ChatInput } from "@/components/custom/chatinput";
 import { PreviewMessage, ThinkingMessage } from "../../components/custom/message";
 import { useScrollToBottom } from '@/components/custom/use-scroll-to-bottom';
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { message } from "../../interfaces/interfaces";
 import { Overview } from "@/components/custom/overview";
 import { Header } from "@/components/custom/header";
 import { v4 as uuidv4 } from 'uuid';
 import { useParams } from "react-router-dom";
-import { EventSource } from "extended-eventsource"
+import useSSE from "@/lib/sse";
 
 const DEFAULT_AGENT_ID = import.meta.env.VITE_DEFAULT_AGENT_ID;
 const API_URL = import.meta.env.VITE_API_URL;
@@ -51,20 +51,7 @@ export function Chat() {
     });
   }
 
-  useEffect(() => {
-    const es = new EventSource(URL + `/stream?channel=${convId}`);
-    es.onopen = () => console.log(">>> Connection opened!");
-    es.onerror = (e) => console.log("ERROR!", e);
-    es.onmessage = (event: MessageEvent) => {
-      const data = JSON.parse(event.data);
-      handleResponse(data);
-    };
-    return () => {
-      es.close();
-    };
-  }, []);
-
-
+  useSSE(URL + `/stream?channel=${convId}`, handleResponse);
 
   async function handleSubmit(text?: string) {
     if (isLoading) return;
