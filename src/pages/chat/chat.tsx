@@ -45,7 +45,7 @@ export function Chat() {
 
   const cleanupMessageHandler = () => {
     if (messageHandlerRef.current && socketRef.current) {
-      socketRef.current.off("message", messageHandlerRef.current);
+      socketRef.current.off("json", messageHandlerRef.current);
       messageHandlerRef.current = null;
     }
   };
@@ -104,7 +104,7 @@ export function Chat() {
       };
 
       messageHandlerRef.current = messageHandler;
-      socketRef.current.on("message", messageHandler);
+      socketRef.current.on("json", messageHandler);
     } catch (error) {
       console.error("WebSocket error:", error);
       setIsLoading(false);
@@ -114,7 +114,7 @@ export function Chat() {
 
   return (
     <div className="flex flex-col min-w-0 h-dvh bg-background">
-      <Header />
+      <Header isConnected={isConnected} />
       <div
         className="flex flex-col min-w-0 gap-6 flex-1 overflow-y-scroll pt-4"
         ref={messagesContainerRef}
