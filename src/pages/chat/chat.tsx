@@ -8,7 +8,7 @@ import { Header } from "@/components/custom/header";
 import { v4 as uuidv4 } from 'uuid';
 import { useParams } from "react-router-dom";
 import { urlWithParams } from "@/lib/utils";
-import { EventSource } from  "extended-eventsource"
+import { EventSource } from "extended-eventsource"
 
 const DEFAULT_AGENT_ID = import.meta.env.VITE_DEFAULT_AGENT_ID;
 const API_URL = import.meta.env.VITE_API_URL;
@@ -32,7 +32,7 @@ export function Chat() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   useEffect(() => {
-    const es = new EventSource(URL + "/stream");
+    const es = new EventSource(URL + `/stream?channel=${convId}`);
     es.onopen = () => console.log(">>> Connection opened!");
     es.onerror = (e) => console.log("ERROR!", e);
     es.onmessage = (event: MessageEvent) => {
