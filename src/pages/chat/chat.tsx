@@ -29,7 +29,7 @@ export function Chat() {
   const [messages, setMessages] = useState<message[]>([]);
   const [question, setQuestion] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
-
+  const [es, setEs] = useState<EventSource | null>();
   function handleAiResponse(data: any) {
     console.log("received");
     console.log(data);
@@ -54,19 +54,19 @@ export function Chat() {
   }
 
   const listenResponse = (message: string) => {
-    const es = new EventSource(urlWithParams(URL + "/ask", {
+    es?.close();
+    setEs(new EventSource(urlWithParams(URL + "/ask", {
       message: message,
       conv_id: convId,
-      agent_id: final_agent_id
-    }));
-    es.onopen = () => console.log(">>> Connection opened!");
-    es.onerror = (e) => console.log("ERROR!", e);
-    es.onmessage = (event: MessageEvent) => {
-      const data = JSON.parse(event.data);
+      agent_id: final_agent_id,
+    })));
+    es!.onopen = () => console.log(">>> Connection opened!");
+    es!.onerror = (e) => console.log("ERROR!", e);
+    es!.onmessage = (event: MessageEvent) => {
+      const data = JSON.parse(event.data!);
       handleAiResponse(data);
     };
     setIsLoading(false);
-    // es.close();
   };
 
   async function handleSubmit(text?: string) {
