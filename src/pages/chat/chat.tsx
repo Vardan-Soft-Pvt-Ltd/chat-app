@@ -8,6 +8,7 @@ import { Header } from "@/components/custom/header";
 import { v4 as uuidv4 } from 'uuid';
 import { useParams } from "react-router-dom";
 import { urlWithParams } from "@/lib/utils";
+import { EventSource } from  "extended-eventsource"
 
 const DEFAULT_AGENT_ID = import.meta.env.VITE_DEFAULT_AGENT_ID;
 const API_URL = import.meta.env.VITE_API_URL;
