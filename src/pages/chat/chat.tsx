@@ -78,6 +78,7 @@ export function Chat() {
     setQuestion("");
 
     fetch(URL + "/chat", {
+      mode: 'no-cors',
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -86,7 +87,7 @@ export function Chat() {
         message: messageText,
         conv_id: convId,
         agent_id: final_agent_id,
-      }),
+      })
     })
       .then((res) => res.text())
       .then((data) => {
