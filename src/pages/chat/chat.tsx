@@ -7,13 +7,14 @@ import { Overview } from "@/components/custom/overview";
 import { Header } from "@/components/custom/header";
 import { v4 as uuidv4 } from 'uuid';
 import { io, Socket } from "socket.io-client";
-const agentId = import.meta.env.VITE_AGENT_ID;
-const apiUrl = import.meta.env.VITE_API_URL;
+import { useParams } from "react-router-dom";
+const DEFAULT_AGENT_ID = import.meta.env.VITE_AGENT_ID;
+const API_URL = import.meta.env.VITE_API_URL;
 
-
-const URL = process.env.NODE_ENV === 'production' ? apiUrl : 'http://localhost:5000';
+const URL = process.env.NODE_ENV === 'production' ? API_URL : 'http://localhost:5000';
 
 export function Chat() {
+  const { agent_id = DEFAULT_AGENT_ID } = useParams();
   const [convId, setConvId] = useState<string>("");
   const [messagesContainerRef, messagesEndRef] = useScrollToBottom<HTMLDivElement>();
   const [messages, setMessages] = useState<message[]>([]);
@@ -68,7 +69,7 @@ export function Chat() {
     socketRef.current.emit("json", {
       message: messageText,
       conv_id: convId,
-      agent_id: agentId
+      agent_id: agent_id
     });
     setQuestion("");
 
