@@ -54,7 +54,7 @@ export function Chat() {
   }
 
   const listenResponse = (message: string) => {
-    fetch(urlWithParams(URL + "/stream", {
+    fetch(urlWithParams(URL + "/ask", {
       message: message,
       conv_id: convId,
       agent_id: final_agent_id,
