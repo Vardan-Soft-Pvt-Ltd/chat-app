@@ -7,8 +7,11 @@ import { Overview } from "@/components/custom/overview";
 import { Header } from "@/components/custom/header";
 import { v4 as uuidv4 } from 'uuid';
 import { io, Socket } from "socket.io-client";
+const agentId = import.meta.env.VITE_AGENT_ID;
+const apiUrl = import.meta.env.VITE_API_URL;
 
-const URL = process.env.NODE_ENV === 'production' ? process.env.REACT_APP_API_URL : 'http://localhost:5000';
+
+const URL = process.env.NODE_ENV === 'production' ? apiUrl : 'http://localhost:5000';
 
 export function Chat() {
   const [convId, setConvId] = useState<string>("");
@@ -65,7 +68,7 @@ export function Chat() {
     socketRef.current.emit("json", {
       message: messageText,
       conv_id: convId,
-      agent_id: process.env.REACT_APP_AGENT_ID
+      agent_id: agentId
     });
     setQuestion("");
 
