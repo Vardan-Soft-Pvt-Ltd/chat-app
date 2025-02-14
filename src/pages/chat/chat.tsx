@@ -54,12 +54,17 @@ export function Chat() {
   }
 
   const listenResponse = (message: string) => {
-    es?.close();
-    setEs(new EventSource(urlWithParams(URL + "/ask", {
+    fetch(urlWithParams(URL + "/stream", {
       message: message,
       conv_id: convId,
       agent_id: final_agent_id,
-    })));
+    })).then((res) => {
+      console.log(res);
+    }).catch((err) => {
+      console.log(err);
+    });
+    es?.close();
+    setEs(new EventSource(URL + "/stream"));
     es!.onopen = () => console.log(">>> Connection opened!");
     es!.onerror = (e) => console.log("ERROR!", e);
     es!.onmessage = (event: MessageEvent) => {
