@@ -30,6 +30,29 @@ export function Chat() {
   const [question, setQuestion] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
+  function handleAiResponse(data: any) {
+    console.log("received");
+    console.log(data);
+    setMessages(prev => {
+      const lastMessage = prev[prev.length - 1];
+      if (lastMessage?.role === "assistant") {
+        return [
+          ...prev.slice(0, -1),
+          { ...lastMessage, content: lastMessage.content + data.response }
+        ];
+      } else {
+        return [
+          ...prev,
+          {
+            content: data.response,
+            role: "assistant",
+            id: uuidv4()
+          }
+        ];
+      }
+    });
+  }
+
   const listenResponse = (message: string) => {
     const es = new EventSource(urlWithParams(URL + "/ask", {
       message: message,
@@ -40,31 +63,10 @@ export function Chat() {
     es.onerror = (e) => console.log("ERROR!", e);
     es.onmessage = (event: MessageEvent) => {
       const data = JSON.parse(event.data);
-      console.log("received");
-      console.log(data);
-      setMessages(prev => {
-        const lastMessage = prev[prev.length - 1];
-        if (lastMessage?.role === "assistant") {
-          return [
-            ...prev.slice(0, -1),
-            { ...lastMessage, content: lastMessage.content + data.response }
-          ];
-        } else {
-          return [
-            ...prev,
-            {
-              content: data.response,
-              role: "assistant",
-              id: uuidv4()
-            }
-          ];
-        }
-      });
+      handleAiResponse(data);
     };
-    return () => {
-      setIsLoading(false);
-      es.close();
-    };
+    setIsLoading(false);
+    // es.close();
   };
 
   async function handleSubmit(text?: string) {
