@@ -8,9 +8,7 @@ import { Header } from "@/components/custom/header";
 import { v4 as uuidv4 } from 'uuid';
 import { io, Socket } from "socket.io-client";
 
-const URL = process.env.NODE_ENV === 'production'
-  ? "https://ai.vardansoft.com/"
-  : 'http://localhost:5000';
+const URL = process.env.NODE_ENV === 'production' ? process.env.REACT_APP_API_URL : 'http://localhost:5000';
 
 export function Chat() {
   const [convId, setConvId] = useState<string>("");
@@ -67,7 +65,7 @@ export function Chat() {
     socketRef.current.emit("json", {
       message: messageText,
       conv_id: convId,
-      agent_id: "67ae400b1fcc54317b30dca4"
+      agent_id: process.env.REACT_APP_AGENT_ID
     });
     setQuestion("");
 
