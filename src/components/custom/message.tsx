@@ -46,7 +46,7 @@ export const ThinkingMessage = () => {
 
   return (
     <motion.div
-      className="w-full mx-auto max-w-3xl px-4 group/message "
+      className="w-full mx-auto max-w-3xl px-4 group/message"
       initial={{ y: 5, opacity: 0 }}
       animate={{ y: 0, opacity: 1, transition: { delay: 0.2 } }}
       data-role={role}
@@ -57,10 +57,14 @@ export const ThinkingMessage = () => {
           'group-data-[role=user]/message:bg-muted'
         )}
       >
-        <div className="size-8 flex items-center rounded-full justify-center ring-1 shrink-0 ring-border">
-          <SparklesIcon size={14} />
+        <div className="flex items-center gap-2">
+          <div className="size-8 flex items-center rounded-full justify-center ring-1 shrink-0 ring-border">
+            <SparklesIcon size={14} />
+          </div>
+          <span className="text-sm text-gray-500">Typing...</span> {/* Add the "Typing..." text */}
         </div>
       </div>
     </motion.div>
   );
 };
+
