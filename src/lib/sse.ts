@@ -18,7 +18,7 @@ const useSSE = (URL: string, handleResponse: (data: any) => void) => {
                 if (es) {
                     es.close(); // Close the current connection before reconnecting
                 }
-                setTimeout(connect, 5000); // Retry connection after 5 seconds
+                setTimeout(connect, 1000); // Retry connection after 1 seconds
             };
 
             es.onmessage = (event: MessageEvent) => {
