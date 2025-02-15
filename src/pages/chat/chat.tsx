@@ -51,10 +51,10 @@ export function Chat() {
     });
   }
 
-  useSSE(URL + `/stream?channel=${convId}`, handleResponse);
+  const isSSEConnected = useSSE(URL + `/stream?channel=${convId}`, handleResponse);
 
   async function handleSubmit(text?: string) {
-    if (isLoading) return;
+    if (isLoading || !isSSEConnected) return;
     const messageText = text || question;
     setIsLoading(true);
     setMessages(prev => [...prev, {
