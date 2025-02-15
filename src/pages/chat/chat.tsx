@@ -84,7 +84,8 @@ function Chat({ convId, handleResponse, messages, setMessages }: ChatProps) {
       body: JSON.stringify({
         message: messageText,
         conv_id: convId
-      })
+      }),
+      credentials: 'include'
     })
       .then((res) => res.text())
       .then((data) => {
