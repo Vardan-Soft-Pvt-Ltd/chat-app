@@ -104,6 +104,7 @@ export function Chat() {
           setQuestion={setQuestion}
           onSubmit={handleSubmit}
           isLoading={isLoading}
+          isSSEConnected={isSSEConnected}
         />
       </div>
     </div>
