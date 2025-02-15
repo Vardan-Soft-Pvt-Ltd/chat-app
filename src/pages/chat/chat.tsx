@@ -7,7 +7,7 @@ import { Overview } from "@/components/custom/overview";
 import { Header } from "@/components/custom/header";
 import { v4 as uuidv4 } from 'uuid';
 import { useParams } from "react-router-dom";
-import useSSE from "@/lib/sse";
+import { SSEProvider, useSSE } from "@/context/SSEContext";
 import { BASE_URL } from "@/lib/utils";
 
 const DEFAULT_AGENT_ID = import.meta.env.VITE_DEFAULT_AGENT_ID;
@@ -27,6 +27,7 @@ export function Chat() {
   const [messages, setMessages] = useState<message[]>([]);
   const [question, setQuestion] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const { connected } = useSSE();
 
   function handleResponse(data: any) {
     setMessages(prev => {
@@ -49,10 +50,9 @@ export function Chat() {
     });
   }
 
-  const isSSEConnected = useSSE(BASE_URL + `/stream?channel=${convId}`, handleResponse);
 
   async function handleSubmit(text?: string) {
-    if (isLoading || !isSSEConnected) return;
+    if (isLoading || !connected) return;
     const messageText = text || question;
     setIsLoading(true);
     setMessages(prev => [...prev, {
@@ -85,28 +85,30 @@ export function Chat() {
   }
 
   return (
-    <div className="flex flex-col min-w-0 h-dvh bg-background">
-      <Header />
-      <div
-        className="flex flex-col min-w-0 gap-6 flex-1 overflow-y-scroll pt-4"
-        ref={messagesContainerRef}
-      >
-        {messages.length === 0 && <Overview />}
-        {messages.map((message) => (
-          <PreviewMessage key={message.id} message={message} />
-        ))}
-        {isLoading && <ThinkingMessage />}
-        <div ref={messagesEndRef} className="shrink-0 min-w-[24px] min-h-[24px]" />
+    <SSEProvider URL={BASE_URL + `/stream?channel=${convId}`} handleMessage={handleResponse}>
+      <div className="flex flex-col min-w-0 h-dvh bg-background">
+        <Header />
+        <div
+          className="flex flex-col min-w-0 gap-6 flex-1 overflow-y-scroll pt-4"
+          ref={messagesContainerRef}
+        >
+          {messages.length === 0 && <Overview />}
+          {messages.map((message) => (
+            <PreviewMessage key={message.id} message={message} />
+          ))}
+          {isLoading && <ThinkingMessage />}
+          <div ref={messagesEndRef} className="shrink-0 min-w-[24px] min-h-[24px]" />
+        </div>
+        <div className="flex mx-auto px-4 bg-background pb-4 md:pb-6 gap-2 w-full md:max-w-3xl">
+          <ChatInput
+            question={question}
+            setQuestion={setQuestion}
+            onSubmit={handleSubmit}
+            isLoading={isLoading}
+            isSSEConnected={connected}
+          />
+        </div>
       </div>
-      <div className="flex mx-auto px-4 bg-background pb-4 md:pb-6 gap-2 w-full md:max-w-3xl">
-        <ChatInput
-          question={question}
-          setQuestion={setQuestion}
-          onSubmit={handleSubmit}
-          isLoading={isLoading}
-          isSSEConnected={isSSEConnected}
-        />
-      </div>
-    </div>
+    </SSEProvider>
   );
 }
