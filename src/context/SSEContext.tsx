@@ -45,6 +45,9 @@ export function SSEProvider({ URL, handleMessage, children }: { URL: string, han
         };
 
         connect();
+        // TODO: shouldn't do set connected true here
+        setConnected(true);
+
 
         return () => {
             isMounted = false;
