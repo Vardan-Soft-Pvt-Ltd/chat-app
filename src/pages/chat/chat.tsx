@@ -18,16 +18,9 @@ function getAgentIdByHost(host: string | undefined) {
       return DEFAULT_AGENT_ID
   }
 }
-
-export function Chat() {
-  const { agent_id, host } = useParams();
-  const final_agent_id = agent_id || getAgentIdByHost(host);
+export function ChatPage() {
   const [convId] = useState<string>(crypto.randomUUID());
-  const [messagesContainerRef, messagesEndRef] = useScrollToBottom<HTMLDivElement>();
   const [messages, setMessages] = useState<message[]>([]);
-  const [question, setQuestion] = useState<string>("");
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const { connected } = useSSE();
 
   function handleResponse(data: any) {
     setMessages(prev => {
@@ -49,7 +42,28 @@ export function Chat() {
       }
     });
   }
+  return (
+    <SSEProvider URL={BASE_URL + `/stream?channel=${convId}`} handleMessage={handleResponse}>
+      <Chat convId={convId} handleResponse={handleResponse} messages={messages} setMessages={setMessages}></Chat>
+    </SSEProvider>
+  );
 
+}
+
+interface ChatProps {
+  convId: string,
+  handleResponse: (data: any) => void,
+  messages: message[],
+  setMessages: React.Dispatch<React.SetStateAction<message[]>>
+}
+
+function Chat({ convId, handleResponse, messages, setMessages }: ChatProps) {
+  const { agent_id, host } = useParams();
+  const final_agent_id = agent_id || getAgentIdByHost(host);
+  const [messagesContainerRef, messagesEndRef] = useScrollToBottom<HTMLDivElement>();
+  const [question, setQuestion] = useState<string>("");
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const { connected } = useSSE();
 
   async function handleSubmit(text?: string) {
     if (isLoading || !connected) return;
