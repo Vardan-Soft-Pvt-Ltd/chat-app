@@ -20,6 +20,7 @@ function validate_token(id_token: string) {
     });
 }
 
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [jwtToken, setJwtToken] = useState(localStorage.getItem("jwt_token"));
 
@@ -28,7 +29,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             const response = await validate_token(credential);
             if (response.ok) {
                 console.log('Login successful!');
-                localStorage.setItem("jwt_token", credential);
+                localStorage.setItem("jwt_token", 'token');
                 setJwtToken(credential);
             } else {
                 console.error('Login failed:');
@@ -38,8 +39,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
     };
 
-    const logout = () => {
-        localStorage.removeItem("jwt_token");
+    const logout = async () => {
+        try {
+            const response = await fetch(BASE_URL + '/logout');
+            if (response.ok) {
+                console.log('Logout successful!');
+                localStorage.removeItem("jwt_token");
+                setJwtToken(null);
+            } else {
+                console.error('logout failed:');
+            }
+        } catch (error) {
+            console.error('Error during logout:', error);
+        }
     };
 
     return (

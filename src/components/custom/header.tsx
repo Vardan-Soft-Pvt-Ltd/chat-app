@@ -4,7 +4,7 @@ import { useAuth } from "@/context/AuthContext";
 
 
 export const Header = ({ connected }: { connected: boolean }) => {
-  const { jwtToken, login } = useAuth();
+  const { jwtToken, login, logout } = useAuth();
 
 
   return (
@@ -14,7 +14,7 @@ export const Header = ({ connected }: { connected: boolean }) => {
           <ThemeToggle />
         </div>
         <div>{
-          jwtToken == null && (<GoogleLogin
+          jwtToken ? <button onClick={logout}>Logout</button> : (<GoogleLogin
             type="icon"
             theme="outline"
             shape="circle"
