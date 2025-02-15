@@ -49,7 +49,7 @@ export function Chat() {
     });
   }
 
-  const isSSEConnected = useSSE(URL + `/stream?channel=${convId}`, handleResponse);
+  const isSSEConnected = useSSE(BASE_URL + `/stream?channel=${convId}`, handleResponse);
 
   async function handleSubmit(text?: string) {
     if (isLoading || !isSSEConnected) return;
