@@ -39,6 +39,7 @@ export function SSEProvider({ URL, handleMessage, children }: { URL: string, han
                     const data = JSON.parse(event.data);
                     handleMessage(data);
                 } catch (error) {
+                    console.log("mounted: " + isMounted)
                     console.error("Failed to parse SSE message:", event.data, error);
                 }
             };
