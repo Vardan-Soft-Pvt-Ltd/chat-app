@@ -1,7 +1,7 @@
 import { ChatInput } from "@/components/custom/chatinput";
 import { PreviewMessage, ThinkingMessage } from "../../components/custom/message";
 import { useScrollToBottom } from '@/components/custom/use-scroll-to-bottom';
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { message } from "../../interfaces/interfaces";
 import { Overview } from "@/components/custom/overview";
 import { Header } from "@/components/custom/header";
@@ -19,50 +19,46 @@ function getAgentIdByHost(host: string | undefined) {
   }
 }
 export function ChatPage() {
-  const convId = crypto.randomUUID();
-  const [messages, setMessages] = useState<message[]>([]);
-
-  function handleResponse(data: any) {
-    setMessages(prev => {
-      const lastMessage = prev[prev.length - 1];
-      if (lastMessage?.role === "assistant") {
-        return [
-          ...prev.slice(0, -1),
-          { ...lastMessage, content: lastMessage.content + data.response }
-        ];
-      } else {
-        return [
-          ...prev,
-          {
-            content: data.response,
-            role: "assistant",
-            id: uuidv4()
-          }
-        ];
-      }
-    });
-  }
+  const [convId] = useState<string>(crypto.randomUUID());
   return (
-    <SSEProvider URL={BASE_URL + `/stream?channel=${convId}`} handleMessage={handleResponse}>
-      <Chat convId={convId} messages={messages} setMessages={setMessages}></Chat>
+    <SSEProvider URL={BASE_URL + `/stream?channel=${convId}`}>
+      <Chat convId={convId} ></Chat>
     </SSEProvider>
   );
 
 }
 
-interface ChatProps {
-  convId: string,
-  messages: message[],
-  setMessages: React.Dispatch<React.SetStateAction<message[]>>
-}
-
-function Chat({ convId, messages, setMessages }: ChatProps) {
+function Chat({ convId }: { convId: string }) {
   const { agent_id, host } = useParams();
   const final_agent_id = agent_id || getAgentIdByHost(host);
   const [messagesContainerRef, messagesEndRef] = useScrollToBottom<HTMLDivElement>();
   const [question, setQuestion] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const { connected } = useSSE();
+  const [messages, setMessages] = useState<message[]>([]);
+  const { connected, registerMessageHandler } = useSSE();
+
+  useEffect(() => {
+    registerMessageHandler && registerMessageHandler((data: any) => {
+      setMessages(prev => {
+        const lastMessage = prev[prev.length - 1];
+        if (lastMessage?.role === "assistant") {
+          return [
+            ...prev.slice(0, -1),
+            { ...lastMessage, content: lastMessage.content + data.response }
+          ];
+        } else {
+          return [
+            ...prev,
+            {
+              content: data.response,
+              role: "assistant",
+              id: uuidv4()
+            }
+          ];
+        }
+      });
+    });
+  }, [registerMessageHandler]);
 
   async function handleSubmit(text?: string) {
     if (isLoading || !connected) return;
@@ -99,28 +95,28 @@ function Chat({ convId, messages, setMessages }: ChatProps) {
   }
 
   return (
-      <div className="flex flex-col min-w-0 h-dvh bg-background">
-        <Header connected={connected} />
-        <div
-          className="flex flex-col min-w-0 gap-6 flex-1 overflow-y-scroll pt-4"
-          ref={messagesContainerRef}
-        >
-          {messages.length === 0 && <Overview />}
-          {messages.map((message) => (
-            <PreviewMessage key={message.id} message={message} />
-          ))}
-          {isLoading && <ThinkingMessage />}
-          <div ref={messagesEndRef} className="shrink-0 min-w-[24px] min-h-[24px]" />
-        </div>
-        <div className="flex mx-auto px-4 bg-background pb-4 md:pb-6 gap-2 w-full md:max-w-3xl">
-          <ChatInput
-            question={question}
-            setQuestion={setQuestion}
-            onSubmit={handleSubmit}
-            isLoading={isLoading}
-            isSSEConnected={connected}
-          />
-        </div>
+    <div className="flex flex-col min-w-0 h-dvh bg-background">
+      <Header connected={connected} />
+      <div
+        className="flex flex-col min-w-0 gap-6 flex-1 overflow-y-scroll pt-4"
+        ref={messagesContainerRef}
+      >
+        {messages.length === 0 && <Overview />}
+        {messages.map((message) => (
+          <PreviewMessage key={message.id} message={message} />
+        ))}
+        {isLoading && <ThinkingMessage />}
+        <div ref={messagesEndRef} className="shrink-0 min-w-[24px] min-h-[24px]" />
       </div>
+      <div className="flex mx-auto px-4 bg-background pb-4 md:pb-6 gap-2 w-full md:max-w-3xl">
+        <ChatInput
+          question={question}
+          setQuestion={setQuestion}
+          onSubmit={handleSubmit}
+          isLoading={isLoading}
+          isSSEConnected={connected}
+        />
+      </div>
+    </div>
   );
 }

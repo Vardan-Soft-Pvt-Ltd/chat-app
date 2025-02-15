@@ -1,34 +1,61 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useState, useRef } from "react";
 import { EventSource } from "extended-eventsource";
 
-const SSEContext = createContext<{ connected: boolean }>({ connected: false });
+interface SSEContextType {
+    connected: boolean;
+    registerMessageHandler: (handler: (data: any) => void) => void;
+}
 
-export function SSEProvider({ URL, handleMessage, children }: { URL: string, handleMessage: (data: any) => void, children: React.ReactNode }) {
+const SSEContext = createContext<SSEContextType>({
+    connected: false,
+    registerMessageHandler: () => {
+        console.warn("No SSEProvider found.");
+    },
+});
+
+export function SSEProvider({ URL, children }: { URL: string; children: React.ReactNode }) {
     const [es, setEs] = useState<EventSource | null>(null);
-    function cleanup() {
-        es && es.close();
-        setEs(null);
-    }
+    const messageHandlerRef = useRef<((data: any) => void) | null>(null); // Explicitly define the type
+
+    // Register a message handler
+    const registerMessageHandler = (handler: (data: any) => void) => {
+        messageHandlerRef.current = handler;
+    };
+
+    // Cleanup function
+    const cleanup = () => {
+        if (es) {
+            es.close();
+            setEs(null);
+        }
+    };
+
     useEffect(() => {
         const connect = () => {
             cleanup();
             const _es = new EventSource(URL);
+
             _es.onopen = () => {
                 console.log(">>> Connection opened!");
             };
+
             _es.onerror = (e) => {
-                console.log("ERROR!", e);
+                console.error("SSE Error:", e);
                 cleanup();
                 setTimeout(connect, 1000); // Reconnect after 1 second
             };
+
             _es.onmessage = (event: MessageEvent) => {
                 try {
                     const data = JSON.parse(event.data);
-                    handleMessage(data);
+                    if (messageHandlerRef.current) {
+                        messageHandlerRef.current(data);
+                    }
                 } catch (error) {
                     console.error("Failed to parse SSE message:", event.data, error);
                 }
             };
+
             setEs(_es);
         };
 
@@ -37,10 +64,10 @@ export function SSEProvider({ URL, handleMessage, children }: { URL: string, han
         return () => {
             cleanup();
         };
-    }, [URL, handleMessage]);
+    }, [URL]); // Remove messageHandler from dependencies
 
     return (
-        <SSEContext.Provider value={{ connected: es != null }}>
+        <SSEContext.Provider value={{ connected: es != null, registerMessageHandler }}>
             {children}
         </SSEContext.Provider>
     );
