@@ -1,39 +1,27 @@
-import { createContext, useContext, useEffect, useState, useRef } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 import { EventSource } from "extended-eventsource";
 
 const SSEContext = createContext<{ connected: boolean }>({ connected: false });
 
 export function SSEProvider({ URL, handleMessage, children }: { URL: string, handleMessage: (data: any) => void, children: React.ReactNode }) {
-    const [connected, setConnected] = useState(false);
-    const esRef = useRef<EventSource | null>(null);
-
+    const [es, setEs] = useState<EventSource | null>(null);
+    function cleanup() {
+        es && es.close();
+        setEs(null);
+    }
     useEffect(() => {
-
         const connect = () => {
-            if (esRef.current) {
-                esRef.current.close();
-            }
-
-            const es = new EventSource(URL);
-            esRef.current = es;
-
-            es.onopen = () => {
-
+            cleanup();
+            const _es = new EventSource(URL);
+            _es.onopen = () => {
                 console.log(">>> Connection opened!");
-                setConnected(true);
-
             };
-
-            es.onerror = (e) => {
+            _es.onerror = (e) => {
                 console.log("ERROR!", e);
-
-                setConnected(false);
-
-                es.close();
+                cleanup();
                 setTimeout(connect, 1000); // Reconnect after 1 second
             };
-
-            es.onmessage = (event: MessageEvent) => {
+            _es.onmessage = (event: MessageEvent) => {
                 try {
                     const data = JSON.parse(event.data);
                     handleMessage(data);
@@ -41,24 +29,18 @@ export function SSEProvider({ URL, handleMessage, children }: { URL: string, han
                     console.error("Failed to parse SSE message:", event.data, error);
                 }
             };
+            setEs(_es);
         };
 
         connect();
-        // TODO: shouldn't do set connected true here
-        setConnected(true);
-
 
         return () => {
-            if (esRef.current) {
-                esRef.current.close();
-                esRef.current = null;
-            }
-            setConnected(false);
+            cleanup();
         };
     }, [URL, handleMessage]);
 
     return (
-        <SSEContext.Provider value={{ connected }}>
+        <SSEContext.Provider value={{ connected: es != null }}>
             {children}
         </SSEContext.Provider>
     );
