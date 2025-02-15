@@ -44,7 +44,7 @@ export function ChatPage() {
   }
   return (
     <SSEProvider URL={BASE_URL + `/stream?channel=${convId}`} handleMessage={handleResponse}>
-      <Chat convId={convId} handleResponse={handleResponse} messages={messages} setMessages={setMessages}></Chat>
+      <Chat convId={convId} messages={messages} setMessages={setMessages}></Chat>
     </SSEProvider>
   );
 
@@ -52,12 +52,11 @@ export function ChatPage() {
 
 interface ChatProps {
   convId: string,
-  handleResponse: (data: any) => void,
   messages: message[],
   setMessages: React.Dispatch<React.SetStateAction<message[]>>
 }
 
-function Chat({ convId, handleResponse, messages, setMessages }: ChatProps) {
+function Chat({ convId, messages, setMessages }: ChatProps) {
   const { agent_id, host } = useParams();
   const final_agent_id = agent_id || getAgentIdByHost(host);
   const [messagesContainerRef, messagesEndRef] = useScrollToBottom<HTMLDivElement>();
@@ -100,7 +99,6 @@ function Chat({ convId, handleResponse, messages, setMessages }: ChatProps) {
   }
 
   return (
-    <SSEProvider URL={BASE_URL + `/stream?channel=${convId}`} handleMessage={handleResponse}>
       <div className="flex flex-col min-w-0 h-dvh bg-background">
         <Header connected={connected} />
         <div
@@ -124,6 +122,5 @@ function Chat({ convId, handleResponse, messages, setMessages }: ChatProps) {
           />
         </div>
       </div>
-    </SSEProvider>
   );
 }
