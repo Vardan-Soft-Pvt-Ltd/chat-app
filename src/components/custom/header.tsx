@@ -3,7 +3,7 @@ import { ThemeToggle } from "./theme-toggle";
 import { useAuth } from "@/context/AuthContext";
 
 
-export const Header = () => {
+export const Header = ({ connected }: { connected: boolean }) => {
   const { jwtToken, login } = useAuth();
 
 
@@ -28,7 +28,7 @@ export const Header = () => {
           />
           )
         }
-          {/* {<span className="blink_me"></span>} */}
+          {connected && <span className="blink_me"></span>}
         </div>
       </header>
     </>);

@@ -101,7 +101,7 @@ function Chat({ convId, handleResponse, messages, setMessages }: ChatProps) {
   return (
     <SSEProvider URL={BASE_URL + `/stream?channel=${convId}`} handleMessage={handleResponse}>
       <div className="flex flex-col min-w-0 h-dvh bg-background">
-        <Header />
+        <Header connected={connected} />
         <div
           className="flex flex-col min-w-0 gap-6 flex-1 overflow-y-scroll pt-4"
           ref={messagesContainerRef}
