@@ -8,7 +8,6 @@ export function SSEProvider({ URL, handleMessage, children }: { URL: string, han
     const esRef = useRef<EventSource | null>(null);
 
     useEffect(() => {
-        let isMounted = true;
 
         const connect = () => {
             if (esRef.current) {
@@ -39,7 +38,6 @@ export function SSEProvider({ URL, handleMessage, children }: { URL: string, han
                     const data = JSON.parse(event.data);
                     handleMessage(data);
                 } catch (error) {
-                    console.log("mounted: " + isMounted)
                     console.error("Failed to parse SSE message:", event.data, error);
                 }
             };
@@ -51,7 +49,6 @@ export function SSEProvider({ URL, handleMessage, children }: { URL: string, han
 
 
         return () => {
-            isMounted = false;
             if (esRef.current) {
                 esRef.current.close();
                 esRef.current = null;
