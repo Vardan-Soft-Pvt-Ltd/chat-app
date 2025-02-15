@@ -8,11 +8,9 @@ import { Header } from "@/components/custom/header";
 import { v4 as uuidv4 } from 'uuid';
 import { useParams } from "react-router-dom";
 import useSSE from "@/lib/sse";
+import { BASE_URL } from "@/lib/utils";
 
 const DEFAULT_AGENT_ID = import.meta.env.VITE_DEFAULT_AGENT_ID;
-const API_URL = import.meta.env.VITE_API_URL;
-
-const URL = process.env.NODE_ENV === 'production' ? API_URL : 'http://localhost:5000';
 
 function getAgentIdByHost(host: string | undefined) {
   switch (host) {
@@ -64,7 +62,7 @@ export function Chat() {
     }]);
     setQuestion("");
 
-    fetch(URL + "/chat/" + final_agent_id, {
+    fetch(BASE_URL + "/chat/" + final_agent_id, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
