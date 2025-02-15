@@ -1,54 +1,72 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useState, useRef } from "react";
 import { EventSource } from "extended-eventsource";
 
 const SSEContext = createContext<{ connected: boolean }>({ connected: false });
 
 export function SSEProvider({ URL, handleMessage, children }: { URL: string, handleMessage: (data: any) => void, children: React.ReactNode }) {
     const [connected, setConnected] = useState(false);
-    let es: EventSource | null = null;
+    const esRef = useRef<EventSource | null>(null);
 
     useEffect(() => {
+        let isMounted = true;
 
         const connect = () => {
-            es = new EventSource(URL);
+            if (esRef.current) {
+                esRef.current.close();
+            }
+
+            const es = new EventSource(URL);
+            esRef.current = es;
 
             es.onopen = () => {
+
                 console.log(">>> Connection opened!");
                 setConnected(true);
+
             };
 
             es.onerror = (e) => {
                 console.log("ERROR!", e);
+
                 setConnected(false);
-                if (es) es.close();
-                setTimeout(connect, 1000);
+
+                es.close();
+                setTimeout(connect, 1000); // Reconnect after 1 second
             };
 
             es.onmessage = (event: MessageEvent) => {
-                const data = JSON.parse(event.data);
-                handleMessage(data);
+                try {
+                    const data = JSON.parse(event.data);
+                    handleMessage(data);
+                } catch (error) {
+                    console.error("Failed to parse SSE message:", event.data, error);
+                }
             };
         };
 
         connect();
 
         return () => {
-            if (es) {
-                es.close();
-                setConnected(false);
+            isMounted = false;
+            if (esRef.current) {
+                esRef.current.close();
+                esRef.current = null;
             }
+            setConnected(false);
         };
     }, [URL, handleMessage]);
+
     return (
         <SSEContext.Provider value={{ connected }}>
             {children}
         </SSEContext.Provider>
     );
-};
+}
+
 export function useSSE() {
     const context = useContext(SSEContext);
     if (context === undefined) {
-        throw new Error('useSSE must be used within a SSEProvider');
+        throw new Error("useSSE must be used within an SSEProvider");
     }
     return context;
 }
