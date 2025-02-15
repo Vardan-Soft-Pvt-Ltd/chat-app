@@ -1,26 +1,11 @@
 import { GoogleLogin } from "@react-oauth/google";
 import { ThemeToggle } from "./theme-toggle";
-import { BASE_URL } from "@/lib/utils";
+import { useAuth } from "@/context/AuthContext";
+
 
 export const Header = () => {
-  async function handleGoogleSignIn(id_token: string) {
-    try {
-      const response = await fetch(BASE_URL + '/auth/google', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ id_token: id_token }),
-      });
-      if (response.ok) {
-        console.log('Login successful!');
-      } else {
-        console.error('Login failed:');
-      }
-    } catch (error) {
-      console.error('Error during login:', error);
-    }
-  }
+  const { jwtToken, login } = useAuth();
+
 
   return (
     <>
@@ -28,19 +13,21 @@ export const Header = () => {
         <div className="flex items-center space-x-1 sm:space-x-2">
           <ThemeToggle />
         </div>
-        <div>
-          <GoogleLogin
+        <div>{
+          jwtToken == null && (<GoogleLogin
             type="icon"
             theme="outline"
             shape="circle"
             useOneTap
             onSuccess={credentialResponse => {
-              credentialResponse.credential && handleGoogleSignIn(credentialResponse.credential);
+              credentialResponse.credential && login(credentialResponse.credential);
             }}
             onError={() => {
               console.log('Login Failed');
             }}
           />
+          )
+        }
           {/* {<span className="blink_me"></span>} */}
         </div>
       </header>
