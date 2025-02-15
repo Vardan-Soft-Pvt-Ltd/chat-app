@@ -19,7 +19,7 @@ function getAgentIdByHost(host: string | undefined) {
   }
 }
 export function ChatPage() {
-  const [convId] = useState<string>(crypto.randomUUID());
+  const convId = crypto.randomUUID();
   const [messages, setMessages] = useState<message[]>([]);
 
   function handleResponse(data: any) {
