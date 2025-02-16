@@ -1,7 +1,7 @@
 import { ThemeToggle } from "./theme-toggle";
 
 
-export const Header = ({ connected }: { connected: boolean }) => {
+export const Header = ({  }: { connected: boolean }) => {
   // const { logged_in, login, logout } = useAuth();
 
 
@@ -12,8 +12,8 @@ export const Header = ({ connected }: { connected: boolean }) => {
           <ThemeToggle />
         </div>
         <div className="flex items-center space-x-1 sm:space-x-2 p-2">
-          {connected && <span className="blink_me w-4 h-4 bg-red-500 rounded-full"></span>}
-{/* 
+          {/* {connected && <span className="blink_me w-4 h-4 bg-red-500 rounded-full"></span>} */}
+          {/* 
           {logged_in ? (
             <button onClick={logout} className="px-2 py-1 bg-blue-500 text-white rounded text-sm">
               Logout
