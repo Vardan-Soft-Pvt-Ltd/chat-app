@@ -14,17 +14,13 @@ interface ChatInputProps {
     isSSEConnected: boolean;
 }
 
-const suggestedActions = [
-    {
-        title: 'What is your role',
-        label: 'in this chat',
-        action: 'What is your role in this chat?',
-    },
-    {
-        title: 'Tell me what you know',
-        label: 'about',
-        action: 'Tell me what you know about',
-    },
+type SuggestedAction = {
+    title: string;
+    label: string;
+    action: string;
+}
+const suggestedActions: SuggestedAction[] = [
+
 ];
 
 export const ChatInput = ({ question, setQuestion, onSubmit, isLoading, isSSEConnected }: ChatInputProps) => {
