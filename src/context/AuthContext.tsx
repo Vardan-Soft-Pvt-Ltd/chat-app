@@ -3,7 +3,7 @@ import { createContext, useContext, useState } from "react";
 
 
 interface AuthContextType {
-    jwtToken: string | null;
+    logged_in: boolean;
     login: (credential: string) => void;
     logout: () => void;
 }
@@ -22,15 +22,15 @@ function validate_token(id_token: string) {
 
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-    const [jwtToken, setJwtToken] = useState(localStorage.getItem("jwt_token"));
+    const [logged_in, setLoggedIn] = useState(localStorage.getItem("logged_in") === 'true');
 
     const login = async (credential: string) => {
         try {
             const response = await validate_token(credential);
             if (response.ok) {
                 console.log('Login successful!');
-                localStorage.setItem("jwt_token", 'token');
-                setJwtToken(credential);
+                localStorage.setItem("logged_in", 'true');
+                setLoggedIn(true);
             } else {
                 console.error('Login failed:');
             }
@@ -44,8 +44,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             const response = await fetch(BASE_URL + '/logout');
             if (response.ok) {
                 console.log('Logout successful!');
-                localStorage.removeItem("jwt_token");
-                setJwtToken(null);
+                localStorage.removeItem("logged_in");
+                setLoggedIn(false);
             } else {
                 console.error('logout failed:');
             }
@@ -55,7 +55,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
 
     return (
-        <AuthContext.Provider value={{ jwtToken, login, logout }}>
+        <AuthContext.Provider value={{ logged_in, login, logout }}>
             {children}
         </AuthContext.Provider>
     );
