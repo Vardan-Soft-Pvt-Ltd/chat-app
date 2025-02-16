@@ -1,10 +1,8 @@
-import { GoogleLogin } from "@react-oauth/google";
 import { ThemeToggle } from "./theme-toggle";
-import { useAuth } from "@/context/AuthContext";
 
 
 export const Header = ({ connected }: { connected: boolean }) => {
-  const { jwtToken, login, logout } = useAuth();
+  // const { logged_in, login, logout } = useAuth();
 
 
   return (
@@ -15,8 +13,8 @@ export const Header = ({ connected }: { connected: boolean }) => {
         </div>
         <div className="flex items-center space-x-1 sm:space-x-2 p-2">
           {connected && <span className="blink_me w-4 h-4 bg-red-500 rounded-full"></span>}
-
-          {jwtToken ? (
+{/* 
+          {logged_in ? (
             <button onClick={logout} className="px-2 py-1 bg-blue-500 text-white rounded text-sm">
               Logout
             </button>
@@ -33,7 +31,7 @@ export const Header = ({ connected }: { connected: boolean }) => {
                 console.log('Login Failed');
               }}
             />
-          )}
+          )} */}
         </div>
 
       </header>
