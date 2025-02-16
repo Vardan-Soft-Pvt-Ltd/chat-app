@@ -17,7 +17,7 @@ export const Overview = () => {
             <MessageCircle size={44} />
           </p>
           <p>
-            Welcome to <strong>Chat Application</strong><br />
+            Welcome to <strong>Chat App</strong><br />
             by<br />
             <strong>Vardan Soft Pvt Ltd</strong>.
           </p>
